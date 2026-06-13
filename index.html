@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMBER — Specialty Coffee & Café</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Inter:wght@300;400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --espresso: #1a0e06;
+      --dark:     #0d0804;
+      --dark2:    #150c06;
+      --dark3:    #1f1208;
+      --caramel:  #c8935a;
+      --gold:     #d4a853;
+      --cream:    #f5ede0;
+      --cream2:   #e8d5bc;
+      --white:    #ffffff;
+      --gray:     #7a6a5a;
+      --gray2:    #5a4a3a;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--dark); color: var(--cream); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: var(--caramel); border-radius: 2px; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 28px 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: all 0.5s;
+    }
+    nav.scrolled {
+      background: rgba(13,8,4,0.95);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(200,147,90,0.12);
+      padding: 16px 60px;
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic;
+      font-size: 1.8rem; letter-spacing: 2px; color: var(--gold); text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 38px; list-style: none; }
+    .nav-links a { color: rgba(245,237,224,0.6); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; transition: color 0.3s; }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-reserve {
+      background: transparent; border: 1px solid var(--gold); color: var(--gold) !important;
+      padding: 9px 24px; border-radius: 2px; font-weight: 600 !important; letter-spacing: 2px !important;
+      transition: all 0.3s !important;
+    }
+    .nav-reserve:hover { background: var(--gold) !important; color: var(--dark) !important; }
+
+    /* HAMBURGER */
+    .ham-btn { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; z-index: 1100; }
+    .ham-btn span { display: block; width: 26px; height: 2px; background: var(--cream); border-radius: 2px; transition: all 0.35s; }
+    .ham-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .ham-btn.open span:nth-child(2) { opacity: 0; }
+    .ham-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .mobile-menu {
+      display: none; position: fixed; inset: 0; z-index: 1050;
+      background: rgba(13,8,4,0.98); backdrop-filter: blur(24px);
+      flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      opacity: 0; transform: translateY(-16px); transition: all 0.35s ease; pointer-events: none;
+    }
+    .mobile-menu.open { opacity: 1; transform: translateY(0); pointer-events: all; }
+    .mobile-menu a { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; font-style: italic; color: var(--cream); text-decoration: none; padding: 8px 0; transition: color 0.3s; }
+    .mobile-menu a:hover { color: var(--gold); }
+    .mobile-menu .mm-cta { font-family: 'Montserrat', sans-serif; font-size: 0.9rem !important; font-style: normal !important; border: 1px solid var(--gold); color: var(--gold) !important; padding: 12px 40px; border-radius: 2px; margin-top: 12px; letter-spacing: 2px; }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative; height: 100vh; min-height: 600px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 60% 40%, rgba(200,147,90,0.08) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 70% at 20% 70%, rgba(212,168,83,0.05) 0%, transparent 60%),
+        var(--dark);
+    }
+    /* CSS steam / coffee ring art */
+    .hero-art {
+      position: absolute; right: 8%; top: 50%; transform: translateY(-50%);
+      width: min(420px, 45vw); aspect-ratio: 1;
+      opacity: 0;
+    }
+    .coffee-cup {
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 65%; height: 70%;
+    }
+    .cup-body {
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; height: 80%;
+      background: linear-gradient(160deg, #2a1a0e 0%, #1a0e06 40%, #0d0804 100%);
+      border-radius: 8% 8% 18% 18%;
+      border: 1px solid rgba(200,147,90,0.25);
+      box-shadow: inset 0 -10px 30px rgba(0,0,0,0.5), 0 0 60px rgba(200,147,90,0.08);
+    }
+    .cup-rim {
+      position: absolute; bottom: 78%; left: 50%; transform: translateX(-50%);
+      width: 110%; height: 14px;
+      background: linear-gradient(to bottom, #3a2a1a, #1a0e06);
+      border-radius: 50%;
+      border: 1px solid rgba(200,147,90,0.3);
+    }
+    .coffee-surface {
+      position: absolute; bottom: 80%; left: 50%; transform: translateX(-50%);
+      width: 88%; height: 88%;
+      background: radial-gradient(ellipse at 40% 35%, #3d2010 0%, #1a0a04 55%, #0d0502 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(200,147,90,0.15);
+    }
+    .latte-art {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 70%; height: 70%;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, transparent 0%, rgba(245,237,224,0.08) 15%, transparent 30%, rgba(245,237,224,0.06) 45%, transparent 60%, rgba(245,237,224,0.08) 75%, transparent 90%);
+      animation: rotateSurface 20s linear infinite;
+    }
+    @keyframes rotateSurface { to { transform: translate(-50%,-50%) rotate(360deg); } }
+    .cup-handle {
+      position: absolute; right: -22%; bottom: 20%;
+      width: 28%; height: 45%;
+      border: 2px solid rgba(200,147,90,0.3);
+      border-left: none;
+      border-radius: 0 50% 50% 0;
+    }
+    .cup-saucer {
+      position: absolute; bottom: -5%; left: 50%; transform: translateX(-50%);
+      width: 130%; height: 12px;
+      background: linear-gradient(to bottom, #2a1a0e, #1a0e06);
+      border-radius: 50%;
+      border: 1px solid rgba(200,147,90,0.2);
+    }
+    /* Steam */
+    .steam { position: absolute; bottom: 90%; display: flex; gap: 12px; left: 50%; transform: translateX(-50%); }
+    .steam-line {
+      width: 2px; background: linear-gradient(to top, rgba(245,237,224,0.3), transparent);
+      border-radius: 2px; animation: steamRise 2.5s ease-in-out infinite;
+    }
+    .steam-line:nth-child(1) { height: 40px; animation-delay: 0s; }
+    .steam-line:nth-child(2) { height: 55px; animation-delay: 0.4s; }
+    .steam-line:nth-child(3) { height: 35px; animation-delay: 0.8s; }
+    @keyframes steamRise {
+      0%   { transform: translateY(0) scaleX(1); opacity: 0; }
+      20%  { opacity: 1; }
+      80%  { opacity: 0.3; }
+      100% { transform: translateY(-40px) scaleX(2); opacity: 0; }
+    }
+    /* Orbiting beans */
+    .bean-orbit {
+      position: absolute; top: 50%; left: 50%; width: 90%; height: 90%;
+      transform: translate(-50%, -50%);
+      animation: orbitSpin 18s linear infinite;
+    }
+    .bean {
+      position: absolute; width: 12px; height: 18px;
+      background: var(--caramel); border-radius: 50% 50% 40% 40%;
+      top: 0; left: 50%; transform: translateX(-50%);
+      box-shadow: 0 0 6px rgba(200,147,90,0.4);
+    }
+    .bean::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 1px; height: 60%; background: rgba(0,0,0,0.4); border-radius: 1px; }
+    @keyframes orbitSpin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+    .hero-content {
+      position: relative; text-align: left; max-width: 600px; padding: 0 60px;
+    }
+    .hero-eyebrow {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 24px; opacity: 0;
+    }
+    .eyebrow-line { width: 36px; height: 1px; background: var(--gold); }
+    .eyebrow-text { font-size: 0.72rem; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(3rem, 7vw, 6rem); line-height: 1.0;
+      letter-spacing: -1px; margin-bottom: 24px; opacity: 0;
+      color: var(--cream);
+    }
+    .hero-title em { font-style: italic; color: var(--gold); }
+    .hero-sub {
+      font-size: clamp(0.95rem, 1.5vw, 1.1rem); color: rgba(245,237,224,0.5);
+      font-weight: 300; line-height: 1.85; max-width: 440px; margin-bottom: 44px; opacity: 0;
+    }
+    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; opacity: 0; }
+    .btn {
+      display: inline-block; text-decoration: none; font-family: 'Montserrat', sans-serif;
+      font-weight: 700; font-size: 0.78rem; letter-spacing: 2.5px; text-transform: uppercase;
+      padding: 15px 38px; border-radius: 2px; cursor: pointer; border: none; transition: all 0.3s;
+    }
+    .btn-gold { background: var(--gold); color: var(--dark); }
+    .btn-gold:hover { background: #e0b96a; transform: translateY(-3px); box-shadow: 0 16px 40px rgba(212,168,83,0.3); }
+    .btn-outline { background: transparent; color: var(--cream); border: 1px solid rgba(245,237,224,0.25); }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-3px); }
+
+    .hero-scroll {
+      position: absolute; bottom: 36px; left: 60px; opacity: 0;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .hs-line { width: 48px; height: 1px; background: linear-gradient(to right, var(--gold), transparent); }
+    .hs-text { font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gray); }
+
+    /* ── MARQUEE ── */
+    #marquee { background: var(--espresso); padding: 18px 0; overflow: hidden; border-top: 1px solid rgba(200,147,90,0.1); border-bottom: 1px solid rgba(200,147,90,0.1); }
+    .mq-track { display: flex; gap: 56px; animation: mq-scroll 22s linear infinite; width: max-content; }
+    .mq-item { display: flex; align-items: center; gap: 18px; white-space: nowrap; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1rem; color: rgba(200,147,90,0.6); }
+    .mq-dot { width: 4px; height: 4px; background: var(--caramel); border-radius: 50%; opacity: 0.4; }
+    @keyframes mq-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+    /* ── SECTION COMMON ── */
+    .section { padding: 120px 60px; }
+    .inner { max-width: 1240px; margin: 0 auto; }
+    .tag { display: inline-flex; align-items: center; gap: 12px; font-size: 0.7rem; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+    .tag::before { content: ''; width: 28px; height: 1px; background: var(--gold); }
+    .h2 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 900; line-height: 1.1; margin-bottom: 20px; color: var(--cream); }
+    .h2 em { font-style: italic; color: var(--gold); }
+    .lead { font-size: 1rem; color: rgba(245,237,224,0.5); line-height: 1.9; }
+
+    /* ── MENU ── */
+    #menu { background: var(--dark2); }
+    .menu-hd { text-align: center; margin-bottom: 70px; }
+    .menu-tabs { display: flex; justify-content: center; gap: 0; margin-bottom: 52px; border: 1px solid rgba(200,147,90,0.15); border-radius: 3px; width: fit-content; margin-left: auto; margin-right: auto; overflow: hidden; }
+    .menu-tab { padding: 12px 32px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(245,237,224,0.45); cursor: pointer; transition: all 0.3s; background: transparent; border: none; }
+    .menu-tab.active { background: var(--gold); color: var(--dark); }
+    .menu-tab:hover:not(.active) { color: var(--gold); }
+    .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .menu-card {
+      background: var(--dark3); border: 1px solid rgba(200,147,90,0.08);
+      border-radius: 8px; overflow: hidden; transition: all 0.4s;
+    }
+    .menu-card:hover { transform: translateY(-6px); border-color: rgba(200,147,90,0.25); box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+    .mc-img {
+      height: 200px; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mc-bg-1 { background: radial-gradient(ellipse at 50% 60%, #2a1505, #0d0502); }
+    .mc-bg-2 { background: radial-gradient(ellipse at 50% 60%, #1a1505, #080602); }
+    .mc-bg-3 { background: radial-gradient(ellipse at 50% 60%, #1a0a05, #0d0502); }
+    .mc-bg-4 { background: radial-gradient(ellipse at 50% 60%, #120e05, #080602); }
+    .mc-bg-5 { background: radial-gradient(ellipse at 50% 60%, #1a0805, #0d0502); }
+    .mc-bg-6 { background: radial-gradient(ellipse at 50% 60%, #151505, #080802); }
+    .mc-emoji { font-size: 5rem; filter: drop-shadow(0 8px 24px rgba(200,147,90,0.3)); transition: transform 0.4s; }
+    .menu-card:hover .mc-emoji { transform: scale(1.1) translateY(-4px); }
+    .mc-price-tag {
+      position: absolute; top: 16px; right: 16px;
+      background: var(--gold); color: var(--dark);
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.8rem;
+      padding: 4px 12px; border-radius: 2px;
+    }
+    .mc-body { padding: 22px 24px; }
+    .mc-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.15rem; margin-bottom: 6px; color: var(--cream); }
+    .mc-desc { font-size: 0.82rem; color: rgba(245,237,224,0.45); line-height: 1.7; }
+    .mc-tags { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+    .mc-tag { padding: 3px 10px; background: rgba(200,147,90,0.08); border: 1px solid rgba(200,147,90,0.2); border-radius: 100px; font-size: 0.66rem; font-weight: 600; color: var(--caramel); }
+
+    /* ── STORY ── */
+    #story { background: var(--dark); }
+    .story-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .story-visual { position: relative; }
+    .story-frame {
+      border-radius: 6px; overflow: hidden; position: relative;
+      background: linear-gradient(145deg, #2a1a0e, #1a0e06, #0d0804);
+      aspect-ratio: 4/5;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .story-frame::before {
+      content: ''; position: absolute; inset: -1px;
+      background: linear-gradient(135deg, rgba(212,168,83,0.4), transparent 50%, rgba(200,147,90,0.2));
+      border-radius: 7px; z-index: -1;
+    }
+    .story-art-big { font-size: 8rem; filter: drop-shadow(0 16px 40px rgba(200,147,90,0.2)); }
+    .story-year-badge {
+      position: absolute; bottom: -20px; right: -20px;
+      background: var(--gold); color: var(--dark);
+      font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic;
+      padding: 20px 24px; border-radius: 6px; text-align: center;
+      box-shadow: 0 16px 40px rgba(212,168,83,0.3);
+    }
+    .sy-big { font-size: 2rem; display: block; line-height: 1; }
+    .sy-small { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; font-style: normal; }
+    .story-quote {
+      margin: 30px 0; padding: 24px 28px;
+      border-left: 2px solid var(--gold);
+      background: rgba(212,168,83,0.04);
+    }
+    .story-quote p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.15rem; color: var(--cream2); line-height: 1.75; }
+    .story-quote cite { display: block; margin-top: 10px; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-style: normal; }
+    .story-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 36px; }
+    .ss { padding: 20px; background: var(--dark3); border-radius: 6px; border: 1px solid rgba(200,147,90,0.08); }
+    .ss-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--gold); display: block; line-height: 1; }
+    .ss-label { font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); margin-top: 4px; display: block; }
+
+    /* ── PROCESS ── */
+    #process { background: var(--dark2); }
+    .process-hd { text-align: center; margin-bottom: 72px; }
+    .process-steps { display: flex; gap: 0; position: relative; max-width: 1000px; margin: 0 auto; }
+    .process-steps::before { content: ''; position: absolute; top: 36px; left: 8%; right: 8%; height: 1px; background: linear-gradient(to right, transparent, rgba(212,168,83,0.3), transparent); }
+    .ps { flex: 1; text-align: center; padding: 0 16px; }
+    .ps-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--dark3); border: 1px solid rgba(212,168,83,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; margin: 0 auto 22px;
+      transition: all 0.4s; box-shadow: 0 0 0 0 rgba(212,168,83,0);
+    }
+    .ps:hover .ps-icon { border-color: var(--gold); background: rgba(212,168,83,0.08); box-shadow: 0 0 30px rgba(212,168,83,0.15); transform: scale(1.1); }
+    .ps-num { font-family: 'Playfair Display', serif; font-size: 0.75rem; font-style: italic; color: var(--gold); margin-bottom: 6px; }
+    .ps h4 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 8px; color: var(--cream); }
+    .ps p { font-size: 0.82rem; color: rgba(245,237,224,0.45); line-height: 1.7; }
+
+    /* ── SPECIALS / BANNER ── */
+    #special {
+      background: var(--espresso);
+      padding: 80px 60px;
+      text-align: center;
+      position: relative; overflow: hidden;
+      border-top: 1px solid rgba(212,168,83,0.1);
+      border-bottom: 1px solid rgba(212,168,83,0.1);
+    }
+    #special::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(212,168,83,0.06) 0%, transparent 70%);
+    }
+    .special-inner { position: relative; }
+    .special-tag { font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; display: block; }
+    .special-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; color: var(--cream); line-height: 1.1; margin-bottom: 16px; }
+    .special-title em { font-style: italic; color: var(--gold); }
+    .special-sub { color: rgba(245,237,224,0.5); font-size: 1rem; line-height: 1.8; margin-bottom: 36px; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .special-hours { display: flex; justify-content: center; gap: 40px; margin-top: 24px; flex-wrap: wrap; }
+    .sh-item { text-align: center; }
+    .sh-day { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+    .sh-time { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--cream); }
+    .sh-sep { width: 1px; background: rgba(212,168,83,0.15); align-self: stretch; }
+
+    /* ── AMBIENCE / GALLERY ── */
+    #gallery { background: var(--dark); }
+    .gallery-hd { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(2, 220px);
+      gap: 12px;
+    }
+    .gi {
+      border-radius: 6px; overflow: hidden; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem; cursor: pointer;
+      transition: all 0.4s;
+      border: 1px solid rgba(200,147,90,0.05);
+    }
+    .gi:hover { border-color: rgba(200,147,90,0.3); transform: scale(1.02); z-index: 1; }
+    .gi:hover .gi-overlay { opacity: 1; }
+    .gi-1 { background: radial-gradient(ellipse at 40% 50%, #2a1505, #0d0502); grid-column: span 2; grid-row: span 2; font-size: 7rem; }
+    .gi-2 { background: radial-gradient(ellipse at 50% 50%, #1a1205, #080602); }
+    .gi-3 { background: radial-gradient(ellipse at 50% 50%, #200f05, #0d0502); }
+    .gi-4 { background: radial-gradient(ellipse at 50% 50%, #181005, #080502); }
+    .gi-5 { background: radial-gradient(ellipse at 50% 50%, #150a05, #0d0502); }
+    .gi-overlay {
+      position: absolute; inset: 0; background: rgba(13,8,4,0.6);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .gi-overlay span { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.9rem; color: var(--cream); letter-spacing: 1px; }
+
+    /* ── TESTIMONIALS ── */
+    #reviews { background: var(--dark2); overflow: hidden; }
+    .reviews-hd { text-align: center; margin-bottom: 56px; }
+    .rev-track { display: flex; gap: 20px; padding: 0 60px; overflow-x: auto; scrollbar-width: none; cursor: grab; }
+    .rev-track::-webkit-scrollbar { display: none; }
+    .rc {
+      flex-shrink: 0; width: 320px;
+      background: var(--dark3); border: 1px solid rgba(200,147,90,0.08);
+      border-radius: 10px; padding: 30px; transition: all 0.4s;
+    }
+    .rc:hover { border-color: rgba(200,147,90,0.22); transform: translateY(-5px); }
+    .rc-stars { color: var(--gold); font-size: 0.9rem; letter-spacing: 3px; margin-bottom: 16px; }
+    .rc-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.98rem; line-height: 1.8; color: rgba(245,237,224,0.72); margin-bottom: 22px; }
+    .rc-author { display: flex; align-items: center; gap: 12px; }
+    .rc-av { width: 40px; height: 40px; border-radius: 50%; background: rgba(212,168,83,0.12); border: 1px solid rgba(212,168,83,0.25); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; color: var(--gold); flex-shrink: 0; }
+    .rc-name { font-weight: 600; font-size: 0.87rem; color: var(--cream); }
+    .rc-meta { font-size: 0.7rem; color: var(--gray); margin-top: 2px; }
+
+    /* ── RESERVE ── */
+    #reserve {
+      background: var(--dark); padding: 130px 60px;
+      position: relative; overflow: hidden;
+    }
+    #reserve::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 65% 70% at 50% 50%, rgba(212,168,83,0.06) 0%, transparent 70%); }
+    .reserve-inner { position: relative; max-width: 700px; margin: 0 auto; text-align: center; }
+    .reserve-title { font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; line-height: 1.05; margin-bottom: 20px; color: var(--cream); }
+    .reserve-title em { font-style: italic; color: var(--gold); }
+    .reserve-sub { font-size: 1.05rem; color: rgba(245,237,224,0.45); line-height: 1.8; margin-bottom: 48px; }
+    .reserve-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .rf-input {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(200,147,90,0.18);
+      border-radius: 3px; padding: 14px 18px; color: var(--cream);
+      font-family: 'Inter', sans-serif; font-size: 0.9rem;
+      transition: border-color 0.3s; outline: none; width: 100%;
+    }
+    .rf-input::placeholder { color: rgba(245,237,224,0.3); }
+    .rf-input:focus { border-color: var(--gold); }
+    .rf-full { grid-column: span 2; }
+    .reserve-note { font-size: 0.75rem; color: var(--gray); margin-top: 16px; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--espresso);
+      border-top: 1px solid rgba(200,147,90,0.1);
+      padding: 60px;
+    }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 48px; }
+    .fg-logo { font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic; font-size: 2rem; color: var(--gold); display: block; margin-bottom: 14px; }
+    .fg-about { font-size: 0.85rem; color: rgba(245,237,224,0.45); line-height: 1.8; }
+    .fg-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 18px; }
+    .fg-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .fg-links a { font-size: 0.85rem; color: rgba(245,237,224,0.45); text-decoration: none; transition: color 0.3s; }
+    .fg-links a:hover { color: var(--gold); }
+    .footer-bottom { border-top: 1px solid rgba(200,147,90,0.08); padding-top: 28px; display: flex; justify-content: space-between; align-items: center; }
+    .footer-copy { font-size: 0.75rem; color: var(--gray); }
+    .footer-social { display: flex; gap: 16px; }
+    .fs-btn { width: 36px; height: 36px; border: 1px solid rgba(200,147,90,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: var(--gray); text-decoration: none; transition: all 0.3s; }
+    .fs-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── REVEALS ── */
+    .rv  { opacity: 0; transform: translateY(40px); }
+    .rvL { opacity: 0; transform: translateX(-50px); }
+    .rvR { opacity: 0; transform: translateX(50px); }
+    .rvS { opacity: 0; transform: scale(0.9); }
+
+    /* ── MOBILE ── */
+    @media (max-width: 900px) {
+      nav { padding: 16px 20px; }
+      nav.scrolled { padding: 12px 20px; }
+      .nav-links { display: none; }
+      .ham-btn { display: flex; }
+      .mobile-menu { display: flex; }
+      .section { padding: 80px 20px; }
+      #special { padding: 64px 20px; }
+      .hero-content { padding: 0 20px; max-width: 100%; }
+      .hero-art { display: none; }
+      #hero { justify-content: flex-start; align-items: flex-end; padding-bottom: 40px; }
+      .hero-title { font-size: clamp(2.8rem, 10vw, 4rem); }
+      .hero-sub { font-size: 0.92rem; }
+      .hero-btns { flex-direction: column; gap: 12px; }
+      .hero-btns .btn { text-align: center; }
+      .hero-scroll { display: none; }
+      .menu-grid { grid-template-columns: 1fr 1fr; }
+      .menu-tabs { flex-wrap: wrap; }
+      .story-grid { grid-template-columns: 1fr; gap: 48px; }
+      .story-stats { grid-template-columns: 1fr 1fr; }
+      .process-steps { flex-direction: column; gap: 36px; }
+      .process-steps::before { display: none; }
+      .gallery-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+      .gi-1 { grid-column: span 2; grid-row: span 1; height: 220px; }
+      .gallery-hd { flex-direction: column; gap: 14px; align-items: flex-start; }
+      .rev-track { padding: 0 20px; }
+      .rc { width: 280px; }
+      #reserve { padding: 80px 20px; }
+      .reserve-form { grid-template-columns: 1fr; }
+      .rf-full { grid-column: span 1; }
+      .special-hours { gap: 24px; }
+      .sh-sep { display: none; }
+      footer { padding: 40px 20px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+      .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .menu-grid { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: 1fr; }
+      .gi-1 { grid-column: span 1; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .story-stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#menu"      class="mm-link">Menu</a>
+  <a href="#story"     class="mm-link">Our Story</a>
+  <a href="#gallery"   class="mm-link">Ambience</a>
+  <a href="#reviews"   class="mm-link">Reviews</a>
+  <a href="#reserve"   class="mm-cta mm-link">Reserve a Table</a>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">Ember</a>
+  <ul class="nav-links">
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#story">Our Story</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#gallery">Ambience</a></li>
+    <li><a href="#reviews">Reviews</a></li>
+    <li><a href="#reserve" class="nav-reserve">Reserve</a></li>
+  </ul>
+  <button class="ham-btn" id="ham"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+
+  <!-- CSS coffee cup artwork -->
+  <div class="hero-art" id="hero-art">
+    <div class="bean-orbit">
+      <div class="bean"></div>
+    </div>
+    <div class="coffee-cup">
+      <div class="cup-saucer"></div>
+      <div class="cup-body">
+        <div class="cup-rim"></div>
+        <div class="coffee-surface">
+          <div class="latte-art"></div>
+        </div>
+        <div class="cup-handle"></div>
+      </div>
+      <div class="steam">
+        <div class="steam-line"></div>
+        <div class="steam-line"></div>
+        <div class="steam-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow" id="h-eye">
+      <div class="eyebrow-line"></div>
+      <span class="eyebrow-text">Specialty Coffee · Est. 2018</span>
+    </div>
+    <h1 class="hero-title" id="h-title">
+      Where Every<br>Sip Tells a<br><em>Story.</em>
+    </h1>
+    <p class="hero-sub" id="h-sub">Slow-roasted single-origin beans, handcrafted pastries, and a space designed for moments worth remembering.</p>
+    <div class="hero-btns" id="h-btns">
+      <a href="#menu"    class="btn btn-gold">Explore Menu</a>
+      <a href="#reserve" class="btn btn-outline">Reserve a Table</a>
+    </div>
+  </div>
+
+  <div class="hero-scroll" id="h-scroll">
+    <div class="hs-line"></div>
+    <span class="hs-text">Scroll to explore</span>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div id="marquee">
+  <div class="mq-track">
+    <div class="mq-item"><span class="mq-dot"></span>Specialty Coffee</div>
+    <div class="mq-item"><span class="mq-dot"></span>Artisan Pastries</div>
+    <div class="mq-item"><span class="mq-dot"></span>Single Origin Beans</div>
+    <div class="mq-item"><span class="mq-dot"></span>Cold Brew</div>
+    <div class="mq-item"><span class="mq-dot"></span>Brunch Menu</div>
+    <div class="mq-item"><span class="mq-dot"></span>Latte Art</div>
+    <div class="mq-item"><span class="mq-dot"></span>Community Space</div>
+    <div class="mq-item"><span class="mq-dot"></span>Fresh Roasts Daily</div>
+    <div class="mq-item"><span class="mq-dot"></span>Specialty Coffee</div>
+    <div class="mq-item"><span class="mq-dot"></span>Artisan Pastries</div>
+    <div class="mq-item"><span class="mq-dot"></span>Single Origin Beans</div>
+    <div class="mq-item"><span class="mq-dot"></span>Cold Brew</div>
+    <div class="mq-item"><span class="mq-dot"></span>Brunch Menu</div>
+    <div class="mq-item"><span class="mq-dot"></span>Latte Art</div>
+    <div class="mq-item"><span class="mq-dot"></span>Community Space</div>
+    <div class="mq-item"><span class="mq-dot"></span>Fresh Roasts Daily</div>
+  </div>
+</div>
+
+<!-- MENU -->
+<section id="menu" class="section">
+  <div class="inner">
+    <div class="menu-hd">
+      <span class="tag rv">Our Menu</span>
+      <h2 class="h2 rv">Crafted with <em>Intention</em></h2>
+      <div class="menu-tabs rv">
+        <button class="menu-tab active" onclick="filterMenu(this,'all')">All</button>
+        <button class="menu-tab" onclick="filterMenu(this,'coffee')">Coffee</button>
+        <button class="menu-tab" onclick="filterMenu(this,'food')">Food</button>
+        <button class="menu-tab" onclick="filterMenu(this,'cold')">Cold Drinks</button>
+      </div>
+    </div>
+    <div class="menu-grid" id="menu-grid">
+      <div class="menu-card rv" data-cat="coffee">
+        <div class="mc-img mc-bg-1"><span class="mc-emoji">☕</span><span class="mc-price-tag">AED 22</span></div>
+        <div class="mc-body"><div class="mc-name">Signature Espresso</div><div class="mc-desc">Double shot of our house-blend Ethiopian beans, pulled at perfect pressure.</div><div class="mc-tags"><span class="mc-tag">Espresso</span><span class="mc-tag">Strong</span></div></div>
+      </div>
+      <div class="menu-card rv" style="--d:.1s" data-cat="coffee">
+        <div class="mc-img mc-bg-2"><span class="mc-emoji">🥛</span><span class="mc-price-tag">AED 28</span></div>
+        <div class="mc-body"><div class="mc-name">Rose Latte</div><div class="mc-desc">Silky oat milk, espresso, and house-made rose syrup with latte art.</div><div class="mc-tags"><span class="mc-tag">Latte</span><span class="mc-tag">Floral</span></div></div>
+      </div>
+      <div class="menu-card rv" style="--d:.2s" data-cat="cold">
+        <div class="mc-img mc-bg-3"><span class="mc-emoji">🧊</span><span class="mc-price-tag">AED 32</span></div>
+        <div class="mc-body"><div class="mc-name">Ember Cold Brew</div><div class="mc-desc">18-hour slow-steeped cold brew with a splash of Madagascar vanilla cream.</div><div class="mc-tags"><span class="mc-tag">Cold Brew</span><span class="mc-tag">Smooth</span></div></div>
+      </div>
+      <div class="menu-card rv" style="--d:.1s" data-cat="food">
+        <div class="mc-img mc-bg-4"><span class="mc-emoji">🥐</span><span class="mc-price-tag">AED 18</span></div>
+        <div class="mc-body"><div class="mc-name">Butter Croissant</div><div class="mc-desc">Freshly baked every morning with imported French butter. Flaky, golden, perfect.</div><div class="mc-tags"><span class="mc-tag">Pastry</span><span class="mc-tag">Fresh Daily</span></div></div>
+      </div>
+      <div class="menu-card rv" style="--d:.2s" data-cat="food">
+        <div class="mc-img mc-bg-5"><span class="mc-emoji">🥑</span><span class="mc-price-tag">AED 55</span></div>
+        <div class="mc-body"><div class="mc-name">Avocado Toast</div><div class="mc-desc">Sourdough, smashed avocado, pickled red onion, chilli flakes, poached egg.</div><div class="mc-tags"><span class="mc-tag">Brunch</span><span class="mc-tag">Popular</span></div></div>
+      </div>
+      <div class="menu-card rv" style="--d:.3s" data-cat="cold">
+        <div class="mc-img mc-bg-6"><span class="mc-emoji">🍵</span><span class="mc-price-tag">AED 26</span></div>
+        <div class="mc-body"><div class="mc-name">Matcha Iced Latte</div><div class="mc-desc">Ceremonial grade Japanese matcha, oat milk, honey, over pebble ice.</div><div class="mc-tags"><span class="mc-tag">Matcha</span><span class="mc-tag">Iced</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY -->
+<section id="story" class="section">
+  <div class="inner story-grid">
+    <div class="story-visual rvL">
+      <div class="story-frame">
+        <div class="story-art-big">☕</div>
+      </div>
+      <div class="story-year-badge">
+        <span class="sy-big">2018</span>
+        <span class="sy-small">Est.</span>
+      </div>
+    </div>
+    <div class="story-content rvR">
+      <span class="tag">Our Story</span>
+      <h2 class="h2">Born from a <em>Passion</em><br>for the Perfect Cup</h2>
+      <p class="lead">What started as a tiny corner stall with one espresso machine and a dream has grown into the city's most-loved specialty coffee destination. Every decision — from the beans we source to the cups we use — is made with one intention: to give you a moment worth pausing for.</p>
+      <div class="story-quote">
+        <p>"We don't just serve coffee. We serve the ritual, the warmth, and the pause that the world needs more of."</p>
+        <cite>— Founder, Ember Café</cite>
+      </div>
+      <div class="story-stats">
+        <div class="ss"><span class="ss-num" data-t="6">0</span><span class="ss-label">Years of roasting</span></div>
+        <div class="ss"><span class="ss-num" data-t="12">0</span><span class="ss-label">Origin countries</span></div>
+        <div class="ss"><span class="ss-num" data-t="500">0</span><span class="ss-label">Daily cups served</span></div>
+        <div class="ss"><span class="ss-num" data-t="4.9">0</span><span class="ss-label">Average rating</span></div>
+      </div>
+      <div style="margin-top:36px">
+        <a href="#reserve" class="btn btn-gold">Visit Us Today</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process" class="section">
+  <div class="inner">
+    <div class="process-hd">
+      <span class="tag rv">From Bean to Cup</span>
+      <h2 class="h2 rv">The <em>Ember</em> Method</h2>
+      <p class="lead rv" style="max-width:500px;margin:0 auto">Every cup you hold has been on a journey. Here's how we honour it.</p>
+    </div>
+    <div class="process-steps">
+      <div class="ps rv"><div class="ps-icon">🌱</div><div class="ps-num">Step 01</div><h4>Sourced</h4><p>We travel to 12 countries to hand-select single-origin beans from small family farms.</p></div>
+      <div class="ps rv" style="--d:.12s"><div class="ps-icon">🔥</div><div class="ps-num">Step 02</div><h4>Roasted</h4><p>Slow-roasted in-house daily in small batches to unlock each bean's unique flavour profile.</p></div>
+      <div class="ps rv" style="--d:.24s"><div class="ps-icon">⚗️</div><div class="ps-num">Step 03</div><h4>Crafted</h4><p>Our baristas are trained for 6 months before they touch a handle. Every shot is intentional.</p></div>
+      <div class="ps rv" style="--d:.36s"><div class="ps-icon">🫶</div><div class="ps-num">Step 04</div><h4>Served</h4><p>Handed to you warm, made with care, in a space designed to feel like home.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SPECIALS BANNER -->
+<div id="special">
+  <div class="special-inner">
+    <span class="special-tag rv">Opening Hours</span>
+    <h2 class="special-title rv">Come Find Your<br><em>Favourite Spot.</em></h2>
+    <p class="special-sub rv">A table by the window, the corner armchair, or the bar seat watching the baristas work — there's a place here that's yours.</p>
+    <div class="special-hours rv">
+      <div class="sh-item"><div class="sh-day">Mon — Fri</div><div class="sh-time">7:00 AM – 10:00 PM</div></div>
+      <div class="sh-sep"></div>
+      <div class="sh-item"><div class="sh-day">Saturday</div><div class="sh-time">8:00 AM – 11:00 PM</div></div>
+      <div class="sh-sep"></div>
+      <div class="sh-item"><div class="sh-day">Sunday</div><div class="sh-time">9:00 AM – 9:00 PM</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- GALLERY -->
+<section id="gallery" class="section">
+  <div class="inner">
+    <div class="gallery-hd">
+      <div>
+        <span class="tag rv">Ambience</span>
+        <h2 class="h2 rv">The <em>Atmosphere</em></h2>
+      </div>
+      <p class="lead rv" style="max-width:260px;text-align:right">Warm light. Good music. The smell of fresh coffee. Welcome home.</p>
+    </div>
+    <div class="gallery-grid">
+      <div class="gi gi-1"><span>☕</span><div class="gi-overlay"><span>The Bar</span></div></div>
+      <div class="gi gi-2"><span>🪴</span><div class="gi-overlay"><span>Garden Seating</span></div></div>
+      <div class="gi gi-3"><span>🕯️</span><div class="gi-overlay"><span>Evening Vibes</span></div></div>
+      <div class="gi gi-4"><span>🥐</span><div class="gi-overlay"><span>Pastry Corner</span></div></div>
+      <div class="gi gi-5"><span>📚</span><div class="gi-overlay"><span>Reading Nook</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews" class="section">
+  <div class="inner">
+    <div class="reviews-hd">
+      <span class="tag rv">Reviews</span>
+      <h2 class="h2 rv">Guests <em>Love</em> Ember</h2>
+    </div>
+  </div>
+  <div class="rev-track" id="rev-track">
+    <div class="rc"><div class="rc-stars">★★★★★</div><p class="rc-text">"The rose latte alone is worth the trip. But it's the atmosphere that keeps me coming back every single morning before work."</p><div class="rc-author"><div class="rc-av">S</div><div><div class="rc-name">Sara Al Mansoori</div><div class="rc-meta">Regular · Since 2021</div></div></div></div>
+    <div class="rc"><div class="rc-stars">★★★★★</div><p class="rc-text">"Best cold brew in the city — by a long way. You can taste the care in every sip. The beans are clearly exceptional."</p><div class="rc-author"><div class="rc-av">J</div><div><div class="rc-name">James Whitfield</div><div class="rc-meta">Coffee Enthusiast</div></div></div></div>
+    <div class="rc"><div class="rc-stars">★★★★★</div><p class="rc-text">"Came for the coffee, stayed for the vibe. The corner reading nook is my permanent remote office now. Staff are incredible."</p><div class="rc-author"><div class="rc-av">L</div><div><div class="rc-name">Layla Hassan</div><div class="rc-meta">Remote Worker</div></div></div></div>
+    <div class="rc"><div class="rc-stars">★★★★★</div><p class="rc-text">"I hosted a small team lunch here — the brunch menu was perfect, the service was warm. Everyone left happy. Will be back."</p><div class="rc-author"><div class="rc-av">R</div><div><div class="rc-name">Ravi Menon</div><div class="rc-meta">Team Outing</div></div></div></div>
+    <div class="rc"><div class="rc-stars">★★★★★</div><p class="rc-text">"The butter croissant is genuinely the best I've had outside of Paris. How they manage this every single morning is beyond me."</p><div class="rc-author"><div class="rc-av">A</div><div><div class="rc-name">Amira Khalid</div><div class="rc-meta">Food Blogger</div></div></div></div>
+  </div>
+</section>
+
+<!-- RESERVE -->
+<section id="reserve">
+  <div class="reserve-inner">
+    <span class="tag rv" style="justify-content:center">Reserve a Table</span>
+    <h2 class="reserve-title rv">We'd Love to<br><em>Have You.</em></h2>
+    <p class="reserve-sub rv">Book your table in advance and arrive to a warm welcome. Walk-ins always welcome too.</p>
+    <form class="reserve-form rv" onsubmit="return false">
+      <input class="rf-input" type="text"   placeholder="Your Name"         />
+      <input class="rf-input" type="email"  placeholder="Email Address"     />
+      <input class="rf-input" type="tel"    placeholder="Phone Number"      />
+      <input class="rf-input" type="number" placeholder="No. of Guests"     min="1" max="20" />
+      <input class="rf-input rf-full" type="date" />
+      <textarea class="rf-input rf-full" rows="3" placeholder="Special requests (allergies, occasions, seating preference...)"></textarea>
+      <button class="btn btn-gold rf-full" style="font-size:0.8rem;letter-spacing:2.5px">Confirm Reservation</button>
+    </form>
+    <p class="reserve-note rv">Or call us directly: <strong style="color:var(--gold)">+971 XX XXX XXXX</strong></p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="inner">
+    <div class="footer-grid">
+      <div>
+        <span class="fg-logo">Ember</span>
+        <p class="fg-about">A specialty coffee café dedicated to slow mornings, great conversations, and the perfect cup. Come as you are.</p>
+      </div>
+      <div>
+        <div class="fg-title">Explore</div>
+        <ul class="fg-links">
+          <li><a href="#menu">Menu</a></li>
+          <li><a href="#story">Our Story</a></li>
+          <li><a href="#process">Our Process</a></li>
+          <li><a href="#gallery">Ambience</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="fg-title">Visit</div>
+        <ul class="fg-links">
+          <li><a href="#">Find Us</a></li>
+          <li><a href="#reserve">Reserve a Table</a></li>
+          <li><a href="#">Private Events</a></li>
+          <li><a href="#">Bean Subscriptions</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="fg-title">Hours</div>
+        <ul class="fg-links" style="gap:8px">
+          <li style="color:rgba(245,237,224,0.45);font-size:0.82rem">Mon–Fri: 7am – 10pm</li>
+          <li style="color:rgba(245,237,224,0.45);font-size:0.82rem">Saturday: 8am – 11pm</li>
+          <li style="color:rgba(245,237,224,0.45);font-size:0.82rem">Sunday: 9am – 9pm</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2024 Ember Café. All rights reserved.</p>
+      <div class="footer-social">
+        <a href="#" class="fs-btn">𝕏</a>
+        <a href="#" class="fs-btn">in</a>
+        <a href="#" class="fs-btn">ig</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+/* NAV */
+window.addEventListener('scroll', () => document.getElementById('nav').classList.toggle('scrolled', scrollY > 60));
+
+/* HERO ENTRANCE */
+const tl = gsap.timeline({ delay: 0.3 });
+tl.to('#h-eye',    { opacity:1, x:0, duration:0.7, ease:'power3.out' })
+  .to('#h-title',  { opacity:1, y:0, duration:1.0, ease:'power3.out' }, '-=0.3')
+  .to('#h-sub',    { opacity:1, y:0, duration:0.7, ease:'power2.out' }, '-=0.5')
+  .to('#h-btns',   { opacity:1, y:0, duration:0.6, ease:'power2.out' }, '-=0.4')
+  .to('#h-scroll', { opacity:1, duration:0.5 }, '-=0.2')
+  .to('#hero-art', { opacity:1, duration:1.2, ease:'power2.out' }, '-=0.8');
+
+/* HERO PARALLAX */
+gsap.to('#hero-art', { y: -80, ease:'none', scrollTrigger:{ trigger:'#hero', start:'top top', end:'bottom top', scrub:1 }});
+gsap.to('.hero-bg',  { yPercent:20, ease:'none', scrollTrigger:{ trigger:'#hero', start:'top top', end:'bottom top', scrub:true }});
+
+/* STAT COUNTERS */
+document.querySelectorAll('.ss-num[data-t]').forEach(el => {
+  const target = parseFloat(el.dataset.t);
+  const isDecimal = target % 1 !== 0;
+  ScrollTrigger.create({ trigger: el, start:'top 88%', once:true,
+    onEnter: () => gsap.fromTo({v:0},{v:target},{
+      duration: 1.8, ease:'power2.out',
+      onUpdate(){ el.textContent = isDecimal ? this.targets()[0].v.toFixed(1) : Math.round(this.targets()[0].v) + (target >= 100 ? '+' : ''); }
+    })
+  });
+});
+
+/* SCROLL REVEALS */
+gsap.utils.toArray('.rv').forEach(el => {
+  gsap.fromTo(el, { opacity:0, y:40 }, {
+    opacity:1, y:0, duration:0.9, ease:'power3.out',
+    delay: parseFloat(getComputedStyle(el).getPropertyValue('--d') || 0),
+    scrollTrigger:{ trigger:el, start:'top 88%', toggleActions:'play none none none' }
+  });
+});
+gsap.utils.toArray('.rvL').forEach(el => {
+  gsap.fromTo(el, { opacity:0, x:-50 }, { opacity:1, x:0, duration:1, ease:'power3.out', scrollTrigger:{ trigger:el, start:'top 82%' }});
+});
+gsap.utils.toArray('.rvR').forEach(el => {
+  gsap.fromTo(el, { opacity:0, x:50 }, { opacity:1, x:0, duration:1, ease:'power3.out', scrollTrigger:{ trigger:el, start:'top 82%' }});
+});
+
+/* MENU TABS */
+function filterMenu(btn, cat) {
+  document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.menu-card').forEach(card => {
+    const show = cat === 'all' || card.dataset.cat === cat;
+    gsap.to(card, { opacity: show?1:0.15, scale: show?1:0.97, duration:0.4 });
+  });
+}
+
+/* MENU CARD STAGGER */
+gsap.from('.menu-card', { opacity:0, y:50, stagger:0.1, duration:0.85, ease:'power3.out',
+  scrollTrigger:{ trigger:'#menu-grid', start:'top 82%' }});
+
+/* TESTIMONIALS DRAG */
+const rt = document.getElementById('rev-track');
+let drag=false, sx, sl;
+rt.addEventListener('mousedown', e=>{ drag=true; sx=e.pageX-rt.offsetLeft; sl=rt.scrollLeft; rt.style.cursor='grabbing'; });
+['mouseleave','mouseup'].forEach(ev=>rt.addEventListener(ev,()=>{ drag=false; rt.style.cursor='grab'; }));
+rt.addEventListener('mousemove', e=>{ if(!drag) return; e.preventDefault(); rt.scrollLeft=sl-(e.pageX-rt.offsetLeft-sx)*1.5; });
+
+/* SMOOTH ANCHORS */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); closeMM(); gsap.to(window, { duration:1.2, scrollTo:t, ease:'power3.inOut' }); }
+  });
+});
+
+/* HAMBURGER */
+const ham = document.getElementById('ham');
+const mm  = document.getElementById('mobile-menu');
+let open  = false;
+function closeMM(){ open=false; ham.classList.remove('open'); mm.classList.remove('open'); document.body.style.overflow=''; }
+ham.addEventListener('click', () => { open ? closeMM() : (open=true, ham.classList.add('open'), mm.classList.add('open'), document.body.style.overflow='hidden'); });
+document.addEventListener('keydown', e => e.key==='Escape' && closeMM());
+
+/* GALLERY HOVER */
+gsap.from('.gi', { opacity:0, scale:0.92, stagger:0.08, duration:0.8, ease:'power3.out',
+  scrollTrigger:{ trigger:'.gallery-grid', start:'top 82%' }});
+</script>
+</body>
+</html>
