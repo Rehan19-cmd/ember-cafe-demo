@@ -1114,6 +1114,20 @@ document.addEventListener('keydown', e => e.key==='Escape' && closeMM());
 /* GALLERY HOVER */
 gsap.from('.gi', { opacity:0, scale:0.92, stagger:0.08, duration:0.8, ease:'power3.out',
   scrollTrigger:{ trigger:'.gallery-grid', start:'top 82%' }});
+
+/* SAFETY NET — content must never stay hidden if ScrollTrigger mis-times its
+   positions (e.g. while the heavy desktop frame preload is still running).
+   Recalculate on load, and force-show anything that's reached the viewport. */
+function showStuckReveals(){
+  document.querySelectorAll('.rv,.rvL,.rvR,.gi,.menu-card').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (r.top < window.innerHeight && r.bottom > 0 && parseFloat(getComputedStyle(el).opacity) < 0.05) {
+      gsap.set(el, { opacity:1, x:0, y:0, scale:1, clearProps:'filter' });
+    }
+  });
+}
+window.addEventListener('load', () => { ScrollTrigger.refresh(); setTimeout(() => { ScrollTrigger.refresh(); showStuckReveals(); }, 400); });
+window.addEventListener('scroll', showStuckReveals, { passive:true });
 </script>
 </body>
 </html>
