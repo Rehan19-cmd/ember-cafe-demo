@@ -223,7 +223,6 @@
       position: absolute; inset: 0; width: 100%; height: 100%;
       object-fit: cover; display: block; background: #080401;
     }
-    #vp-video { display: none; }
     /* Readability tint over the footage */
     #vp-tint {
       position: absolute; inset: 0; pointer-events: none; z-index: 2;
@@ -281,30 +280,6 @@
     @keyframes hintPulse { 0%,100%{opacity:0.4;transform:translate(-50%,0)} 50%{opacity:0.9;transform:translate(-50%,6px)} }
     @media(max-width:760px){
       .sp-left, .sp-right { left:50%; right:auto; transform:translate(-50%,-50%); text-align:center; max-width:90vw; }
-    }
-    /* On phones: drop the 620vh canvas-scrub experience for a normal,
-       fully-visible stacked story over a looping video background. */
-    @media(max-width:900px){
-      #vid-outer { height: auto; }
-      #vid-sticky {
-        position: relative; top: auto; height: auto; min-height: 100vh;
-        display: flex; flex-direction: column; justify-content: center;
-        gap: 56px; padding: 110px 22px;
-      }
-      #vp-canvas, #vp-loader, .vp-progress-line, .vp-hint { display: none !important; }
-      #vp-video {
-        display: block; position: absolute; inset: 0;
-        width: 100%; height: 100%; object-fit: cover; z-index: 1;
-      }
-      #vp-tint {
-        background:
-          linear-gradient(to bottom, rgba(8,4,1,0.78) 0%, rgba(8,4,1,0.45) 35%, rgba(8,4,1,0.55) 65%, rgba(8,4,1,0.85) 100%);
-      }
-      .story-panel {
-        position: relative !important; left: auto; right: auto; top: auto;
-        transform: none !important; opacity: 1 !important; filter: none !important;
-        max-width: 100%; width: 100%; margin: 0 auto; text-align: center; padding: 0;
-      }
     }
 
     /* ── SECTION COMMON ── */
@@ -537,7 +512,8 @@
       .section { padding: 80px 20px; }
       #special { padding: 64px 20px; }
       .hero-content { padding: 0 20px; max-width: 100%; }
-      .hero-art { display: none; }
+      /* keep the coffee cup on phones — float it in the empty top area */
+      .hero-art { display: block; left: 0; right: 0; margin: 0 auto; top: 12%; transform: none; width: min(220px, 52vw); }
       #hero { justify-content: flex-start; align-items: flex-end; padding-bottom: 40px; }
       .hero-title { font-size: clamp(2.8rem, 10vw, 4rem); }
       .hero-sub { font-size: 0.92rem; }
@@ -670,12 +646,8 @@
 <!-- CINEMATIC SCROLL EXPERIENCE -->
 <div id="vid-outer">
   <div id="vid-sticky">
-    <!-- Full-screen scroll-scrubbed footage (desktop) -->
+    <!-- Full-screen scroll-scrubbed footage -->
     <canvas id="vp-canvas"></canvas>
-    <!-- Looping video fallback used on phones (no heavy frame preload) -->
-    <video id="vp-video" muted loop playsinline autoplay preload="none" poster="frames/frame_001.jpg">
-      <source src="Task-105138460-1-1.mp4" type="video/mp4" />
-    </video>
     <div id="vp-tint"></div>
 
     <!-- Loading overlay -->
@@ -966,16 +938,6 @@ document.querySelectorAll('.ss-num[data-t]').forEach(el => {
 /* CINEMATIC SCROLL EXPERIENCE — full-screen footage scrubs with scroll,
    cafe info panels flow in/out on top */
 (function(){
-  /* PHONES: skip the 240-frame preload + scroll scrub entirely.
-     Just play the looping video background; CSS shows panels stacked. */
-  if (window.matchMedia('(max-width:900px)').matches) {
-    const v = document.getElementById('vp-video');
-    const loader = document.getElementById('vp-loader');
-    if (loader) loader.style.display = 'none';
-    if (v) { v.play().catch(() => {}); }
-    return;
-  }
-
   const TOTAL = 240;                 // number of extracted frames
   const PATH  = i => `frames/frame_${String(i).padStart(3,'0')}.jpg`;
 
